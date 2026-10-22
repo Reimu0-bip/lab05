@@ -19,28 +19,58 @@ jobs:
       - name: Install Newman
         run: npm install -g newman
 
-      - name: Fix hardcoded URLs and inject token
+      - name: Fix URLs and inject token
         env:
           GOREST_TOKEN: ${{ secrets.GOREST_TOKEN }}
         run: |
           node -e "
             const fs = require('fs');
 
-            // 1. Cố định toàn bộ URL trong Collection.json
-            let col = fs.readFileSync('Collection.json', 'utf8');
-            col = col.replace(/\{\{baseurl\}\}\/public\/v2/gi, 'https://gorest.co.in/public/v2');
-            col = col.replace(/\{\{baseUrl\}\}\/public\/v2/gi, 'https://gorest.co.in/public/v2');
-            col = col.replace(/\{\{baseurl\}\}/gi, 'https://gorest.co.in/public/v2');
-            col = col.replace(/\{\{baseUrl\}\}/gi, 'https://gorest.co.in/public/v2');
-            // Dọn dẹp nếu vô tình bị trùng lặp /public/v2/public/v2
-            col = col.replace(/https:\/\/gorest\.co\.in\/public\/v2\/public\/v2/g, 'https://gorest.co.in/public/v2');
-            fs.writeFileSync('Collection.json', col);
+            // 1. Chuẩn hóa toàn bộ URL trong Collection.json
+            const col = JSON.parse(fs.readFileSync('Collection.json', 'utf8'));
 
-            // 2. Tiêm Token bí mật vào Environment.json
-            const envData = JSON.parse(fs.readFileSync('Environment.json', 'utf8'));
-            const target = envData.values.find(x => x.key === 'token');
-            if (target) target.value = process.env.GOREST_TOKEN;
-            fs.writeFileSync('Environment.json', JSON.stringify(envData, null, 2));
+            function fixItem(item) {
+              if (item.item && Array.isArray(item.item)) {
+                item.item.forEach(fixItem);
+              }
+              if (item.request && item.request.url) {
+                let u = item.request.url;
+                if (typeof u === 'string') {
+                  item.request.url = u.replace(/(https:\/\/gorest\.co\.in\/public\/v2)+/g, 'https://gorest.co.in/public/v2')
+                                      .replace(/\{\{baseurl\}\}\/public\/v2/gi, 'https://gorest.co.in/public/v2')
+                                      .replace(/\{\{baseurl\}\}/gi, 'https://gorest.co.in/public/v2');
+                } else if (typeof u === 'object') {
+                  if (u.raw) {
+                    u.raw = u.raw.replace(/(https:\/\/gorest\.co\.in\/public\/v2)+/g, 'https://gorest.co.in/public/v2')
+                                 .replace(/\{\{baseurl\}\}\/public\/v2/gi, 'https://gorest.co.in/public/v2')
+                                 .replace(/\{\{baseurl\}\}/gi, 'https://gorest.co.in/public/v2')
+                                 .replace(/https:\/\/gorest\.co\.in\/public\/v2\/public\/v2/g, 'https://gorest.co.in/public/v2');
+                  }
+                  u.protocol = 'https';
+                  u.host = ['gorest', 'co', 'in'];
+                  // Lọc bỏ đoạn trùng lặp public, v2 trong mảng path
+                  if (Array.isArray(u.path)) {
+                    const cleanPath = [];
+                    for (const segment of u.path) {
+                      if ((segment === 'public' || segment === 'v2') && cleanPath.includes(segment)) continue;
+                      if (segment.includes('{{baseurl}}') || segment.includes('gorest.co.in')) continue;
+                      cleanPath.push(segment);
+                    }
+                    if (cleanPath[0] !== 'public') cleanPath.unshift('v2'), cleanPath.unshift('public');
+                    else if (cleanPath[1] !== 'v2') cleanPath.splice(1, 0, 'v2');
+                    u.path = cleanPath;
+                  }
+                }
+              }
+            }
+            col.item.forEach(fixItem);
+            fs.writeFileSync('Collection.json', JSON.stringify(col, null, 2));
+
+            // 2. Tiêm token vào Environment.json
+            const env = JSON.parse(fs.readFileSync('Environment.json', 'utf8'));
+            const t = env.values.find(x => x.key === 'token');
+            if (t) t.value = process.env.GOREST_TOKEN;
+            fs.writeFileSync('Environment.json', JSON.stringify(env, null, 2));
           "
 
       - name: Run collection with CSV data
