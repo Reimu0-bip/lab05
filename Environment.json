@@ -1,34 +1,51 @@
 {
-	"id": "dc5d218a-55af-41dc-a0fa-0f1375e2ccf2",
-	"name": "2474802010347_VoThanhTam_GoRest_Env",
-	"values": [
-		{
-			"key": "token",
-			"value": "",
-			"type": "default",
-			"enabled": true
-		},
-		{
-			"key": "userid",
-			"value": "",
-			"type": "default",
-			"enabled": true
-		},
-		{
-			"key": "baseurl",
-			"value": "",
-			"type": "default",
-			"enabled": true
-		},
-		{
-			"key": "createdemail",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		}
-	],
-	"color": null,
-	"_postman_variable_scope": "environment",
-	"_postman_exported_at": "2026-10-22T13:24:32.534Z",
-	"_postman_exported_using": "Postman/12.33.3-261022-0328"
+  "id": "b6c8d38e-2d15-4df1-b9d4-05lab00000002",
+  "name": "2474802010347_VoThanhTam_GoRest_Env",
+  "values": [
+    {
+      "key": "token",
+      "value": "",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "baseUrl",
+      "value": "https://gorest.co.in",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "baseurl",
+      "value": "https://gorest.co.in",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "userid",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "createdEmail",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "createdemail",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment",
+  "_postman_exported_at": "2026-10-22T20:00:00.000Z",
+  "_postman_exported_using": "Postman/11"
 }
