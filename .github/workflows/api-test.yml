@@ -19,11 +19,29 @@ jobs:
       - name: Install Newman
         run: npm install -g newman
 
-      - name: Inject token into environment file
+      - name: Fix hardcoded URLs and inject token
         env:
           GOREST_TOKEN: ${{ secrets.GOREST_TOKEN }}
         run: |
-          node -e "const fs=require('fs'); const p='Environment.json'; const e=JSON.parse(fs.readFileSync(p,'utf8')); const v=e.values.find(x=>x.key==='token'); if(v) v.value=process.env.GOREST_TOKEN; fs.writeFileSync(p,JSON.stringify(e,null,2));"
+          node -e "
+            const fs = require('fs');
+
+            // 1. Cố định toàn bộ URL trong Collection.json
+            let col = fs.readFileSync('Collection.json', 'utf8');
+            col = col.replace(/\{\{baseurl\}\}\/public\/v2/gi, 'https://gorest.co.in/public/v2');
+            col = col.replace(/\{\{baseUrl\}\}\/public\/v2/gi, 'https://gorest.co.in/public/v2');
+            col = col.replace(/\{\{baseurl\}\}/gi, 'https://gorest.co.in/public/v2');
+            col = col.replace(/\{\{baseUrl\}\}/gi, 'https://gorest.co.in/public/v2');
+            // Dọn dẹp nếu vô tình bị trùng lặp /public/v2/public/v2
+            col = col.replace(/https:\/\/gorest\.co\.in\/public\/v2\/public\/v2/g, 'https://gorest.co.in/public/v2');
+            fs.writeFileSync('Collection.json', col);
+
+            // 2. Tiêm Token bí mật vào Environment.json
+            const envData = JSON.parse(fs.readFileSync('Environment.json', 'utf8'));
+            const target = envData.values.find(x => x.key === 'token');
+            if (target) target.value = process.env.GOREST_TOKEN;
+            fs.writeFileSync('Environment.json', JSON.stringify(envData, null, 2));
+          "
 
       - name: Run collection with CSV data
         run: |
