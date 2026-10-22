@@ -1,0 +1,531 @@
+{
+  "info": {
+    "_postman_id": "5dde8fa1-6c04-42c9-8118-e706b08323af",
+    "name": "2474802010347_VoThanhTam_GoRest",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "59055558",
+    "_collection_link": "https://go.postman.co/collection/59055558-5dde8fa1-6c04-42c9-8118-e706b08323af?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Positive_Cases",
+      "item": [
+        {
+          "name": "Tích hợp Data-Driven",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201 Created\", function () {\r",
+                  "    pm.response.to.have.status(201);\r",
+                  "});\r",
+                  "\r",
+                  "const res = pm.response.json();\r",
+                  "pm.test(\"Lưu biến động userid và createdemail\", function () {\r",
+                  "    pm.expect(res).to.have.property(\"id\");\r",
+                  "    pm.environment.set(\"userid\", res.id);\r",
+                  "    pm.environment.set(\"createdemail\", res.email);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Danh sách 3 user mô phỏng\r",
+                  "const userList = [\r",
+                  "    { name: \"User One\", gender: \"male\", email: \"test_user_one\", status: \"active\" },\r",
+                  "    { name: \"User Two\", gender: \"female\", email: \"test_user_two\", status: \"active\" },\r",
+                  "    { name: \"User Three\", gender: \"male\", email: \"test_user_three\", status: \"active\" }\r",
+                  "];\r",
+                  "\r",
+                  "// Khởi tạo chỉ số lặp\r",
+                  "let currentIndex = pm.collectionVariables.get(\"current_index\");\r",
+                  "if (currentIndex === undefined || currentIndex === null) {\r",
+                  "    currentIndex = 0;\r",
+                  "    pm.collectionVariables.set(\"current_index\", currentIndex);\r",
+                  "} else {\r",
+                  "    currentIndex = parseInt(currentIndex, 10);\r",
+                  "}\r",
+                  "\r",
+                  "// Lấy user theo lượt chạy\r",
+                  "const currentUser = userList[currentIndex] || userList[0];\r",
+                  "const uniqueSuffix = Date.now() + \"_\" + Math.floor(Math.random() * 1000);\r",
+                  "\r",
+                  "// Gán biến cho Body\r",
+                  "pm.variables.set(\"dyn_name\", currentUser.name);\r",
+                  "pm.variables.set(\"dyn_gender\", currentUser.gender);\r",
+                  "pm.variables.set(\"dyn_email\", `${currentUser.email}_${uniqueSuffix}@gmail.com`);\r",
+                  "pm.variables.set(\"dyn_status\", currentUser.status);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{dyn_name}}\",\n  \"gender\": \"{{dyn_gender}}\",\n  \"email\": \"{{dyn_email}}\",\n  \"status\": \"{{dyn_status}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseurl}}/public/v2/users",
+              "host": [
+                "{{baseurl}}"
+              ],
+              "path": [
+                "public",
+                "v2",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Kiểm tra User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status code is 200 ok\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"verify retrieved user id matches requested id\", function () {",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.id).to.eql(Number(pm.environment.get(\"userid\")));",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseurl}}/public/v2/users/{{userid}}",
+              "host": [
+                "{{baseurl}}"
+              ],
+              "path": [
+                "public",
+                "v2",
+                "users",
+                "{{userid}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Đổi status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status code is 200 ok\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"user status updated to inactive\", function () {\r",
+                  "    const res = pm.response.json();\r",
+                  "    pm.expect(res.status).to.eql(\"inactive\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"status\": \"inactive\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseurl}}/public/v2/users/{{userid}}",
+              "host": [
+                "{{baseurl}}"
+              ],
+              "path": [
+                "public",
+                "v2",
+                "users",
+                "{{userid}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xóa user",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status code is 204 no content\", function () {\r",
+                  "    pm.response.to.have.status(204);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseurl}}/public/v2/users/{{userid}}",
+              "host": [
+                "{{baseurl}}"
+              ],
+              "path": [
+                "public",
+                "v2",
+                "users",
+                "{{userid}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{token}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Negative_Cases",
+      "item": [
+        {
+          "name": "Tạo User no Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status code is 401 unauthorized\", function () {\r",
+                  "    pm.response.to.have.status(401);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"error message indicates authentication failure\", function () {\r",
+                  "    const res = pm.response.json();\r",
+                  "    pm.expect(res.message).to.eql(\"Authentication failed\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"unauthorized user\",\r\n  \"gender\": \"male\",\r\n  \"email\": \"no_auth_{{$timestamp}}@gmail.com\",\r\n  \"status\": \"active\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseurl}}/public/v2/users",
+              "host": [
+                "{{baseurl}}"
+              ],
+              "path": [
+                "public",
+                "v2",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tạo User mới sử dụng lại mail ở luồng Happy Path",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status code is 422 unprocessable entity\", function () {\r",
+                  "    pm.response.to.have.status(422);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"validation error: email has already been taken\", function () {\r",
+                  "    const res = pm.response.json();\r",
+                  "    const emailError = res.find(item => item.field === \"email\");\r",
+                  "    pm.expect(emailError).to.not.be.undefined;\r",
+                  "    pm.expect(emailError.message).to.eql(\"has already been taken\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const dupEmail = \"test_dup_\" + Date.now() + \"@gmail.com\";\r",
+                  "\r",
+                  "// Gửi ngầm 1 request tạo trước user với email này\r",
+                  "pm.sendRequest({\r",
+                  "    url: \"https://gorest.co.in/public/v2/users\",\r",
+                  "    method: 'POST',\r",
+                  "    header: {\r",
+                  "        'Accept': 'application/json',\r",
+                  "        'Content-Type': 'application/json',\r",
+                  "        'Authorization': 'Bearer ' + pm.environment.get(\"token\")\r",
+                  "    },\r",
+                  "    body: {\r",
+                  "        mode: 'raw',\r",
+                  "        raw: JSON.stringify({\r",
+                  "            name: \"Pre Existing User\",\r",
+                  "            gender: \"female\",\r",
+                  "            email: dupEmail,\r",
+                  "            status: \"active\"\r",
+                  "        })\r",
+                  "    }\r",
+                  "}, function (err, res) {\r",
+                  "    // Gán email này vào biến để request chính bên dưới sử dụng lại và gây ra lỗi 422\r",
+                  "    pm.environment.set(\"createdemail\", dupEmail);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"duplicate user\",\r\n  \"gender\": \"female\",\r\n  \"email\": \"{{createdemail}}\",\r\n  \"status\": \"active\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseurl}}/public/v2/users",
+              "host": [
+                "{{baseurl}}"
+              ],
+              "path": [
+                "public",
+                "v2",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Check hệ thống đã thật sự xóa User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status code is 404 not found after deletion\", function () {\r",
+                  "    pm.response.to.have.status(404);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"error message indicates resource not found\", function () {\r",
+                  "    const res = pm.response.json();\r",
+                  "    pm.expect(res.message).to.eql(\"Resource not found\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseurl}}/public/v2/users/{{userid}}",
+              "host": [
+                "{{baseurl}}"
+              ],
+              "path": [
+                "public",
+                "v2",
+                "users",
+                "{{userid}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{token}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {},
+            "exec": [
+              ""
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {},
+            "exec": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "current_index",
+      "value": ""
+    }
+  ]
+}
